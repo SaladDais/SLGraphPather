@@ -1,0 +1,12 @@
+[run]
+omit =
+concurrency = multiprocessing
+[report]
+exclude_lines =
+    pragma: no cover
+    if TYPE_CHECKING:
+    if typing.TYPE_CHECKING:
+    def __repr__
+    raise AssertionError
+    assert False
+    pass

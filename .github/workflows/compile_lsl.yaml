@@ -28,11 +28,26 @@ jobs:
         # We need to manually install this
         pushd ~/Lummao
         python setup.py develop
+        popd
+        pip install pytest pytest-cov
 
     - name: Compile
       run: |
         bash compile.sh
 
-    - name: Run Lummao Tests
+    - name: Test with pytest
       run: |
-        python run_tests.py
+        pytest --cov=./pythonized --cov-report=xml run_tests.py
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage.xml
+        directory: ./coverage/reports/
+        flags: unittests
+        env_vars: OS,PYTHON
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        path_to_write_report: ./coverage/codecov_report.txt
+        verbose: false

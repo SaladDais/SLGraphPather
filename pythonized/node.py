@@ -12,14 +12,14 @@ class Script(BaseLSLScript):
         self.gParentLogicalID = ""
         self.gStartTime = 0
 
-    def restoreLogicalID(self, create: int) -> None:
-        desc: str = self.builtin_funcs.llGetObjectDesc()
-        if cond(bitnot(self.builtin_funcs.llSubStringIndex(desc, ":"))):
-            parsed: list = self.builtin_funcs.llParseString2List(desc, typecast(":", list), [])
-            self.gOwnLogicalID = self.builtin_funcs.llList2String(parsed, 0)
-            self.gParentLogicalID = self.builtin_funcs.llList2String(parsed, 1)
+    def restoreLogicalID(self, _create: int) -> None:
+        _desc: str = self.builtin_funcs.llGetObjectDesc()
+        if cond(bitnot(self.builtin_funcs.llSubStringIndex(_desc, ":"))):
+            _parsed: list = self.builtin_funcs.llParseString2List(_desc, typecast(":", list), [])
+            self.gOwnLogicalID = self.builtin_funcs.llList2String(_parsed, 0)
+            self.gParentLogicalID = self.builtin_funcs.llList2String(_parsed, 1)
         else:
-            if cond(create):
+            if cond(_create):
                 self.gOwnLogicalID = self.generateLogicalID()
                 self.gParentLogicalID = ""
                 self.builtin_funcs.llSetObjectDesc(self.generateDescription())
@@ -27,54 +27,54 @@ class Script(BaseLSLScript):
     def generateDescription(self) -> str:
         return radd(self.gParentLogicalID, radd(":", self.gOwnLogicalID))
 
-    def strReplace(self, subject: str, search: str, replace: str) -> str:
-        return self.builtin_funcs.llDumpList2String(self.builtin_funcs.llParseStringKeepNulls(subject, typecast(search, list), []), replace)
+    def strReplace(self, _subject: str, _search: str, _replace: str) -> str:
+        return self.builtin_funcs.llDumpList2String(self.builtin_funcs.llParseStringKeepNulls(_subject, typecast(_search, list), []), _replace)
 
-    def compressKey(self, k: Key) -> str:
-        s: str = self.builtin_funcs.llToLower(radd("0", self.strReplace(typecast(k, str), "-", "")))
-        ret: str = ""
-        i: int = 0
-        A: str = ""
-        B: str = ""
-        C: str = ""
-        D: str = ""
-        i = 0
+    def compressKey(self, _k: Key) -> str:
+        _s: str = self.builtin_funcs.llToLower(radd("0", self.strReplace(typecast(_k, str), "-", "")))
+        _ret: str = ""
+        _i: int = 0
+        _A: str = ""
+        _B: str = ""
+        _C: str = ""
+        _D: str = ""
+        _i = 0
         while True == True:
-            if not cond(rless(32, i)):
+            if not cond(rless(32, _i)):
                 break
-            A = self.builtin_funcs.llGetSubString(s, i, i)
-            i += 1
-            B = self.builtin_funcs.llGetSubString(s, i, i)
-            i += 1
-            C = self.builtin_funcs.llGetSubString(s, i, i)
-            i += 1
-            D = "b"
-            if cond(req("0", A)):
-                A = "e"
-                D = "8"
+            _A = self.builtin_funcs.llGetSubString(_s, _i, _i)
+            _i += 1
+            _B = self.builtin_funcs.llGetSubString(_s, _i, _i)
+            _i += 1
+            _C = self.builtin_funcs.llGetSubString(_s, _i, _i)
+            _i += 1
+            _D = "b"
+            if cond(req("0", _A)):
+                _A = "e"
+                _D = "8"
             else:
-                if cond(req("d", A)):
-                    A = "e"
-                    D = "9"
+                if cond(req("d", _A)):
+                    _A = "e"
+                    _D = "9"
                 else:
-                    if cond(req("f", A)):
-                        A = "e"
-                        D = "a"
-            ret = radd((radd(C, radd("%b", radd(B, radd(D, radd("%", radd(A, "%e"))))))), ret)
-        return self.builtin_funcs.llUnescapeURL(ret)
+                    if cond(req("f", _A)):
+                        _A = "e"
+                        _D = "a"
+            _ret = radd((radd(_C, radd("%b", radd(_B, radd(_D, radd("%", radd(_A, "%e"))))))), _ret)
+        return self.builtin_funcs.llUnescapeURL(_ret)
 
     def generateLogicalID(self) -> str:
         return self.builtin_funcs.llGetSubString(self.builtin_funcs.llStringToBase64(self.compressKey(self.builtin_funcs.llGenerateKey())), 0, 5)
 
-    def tellAlive(self, id: Key) -> None:
-        msg: str = radd(self.builtin_funcs.llGetObjectDesc(), "node_alive:")
-        if cond(id):
-            self.builtin_funcs.llRegionSayTo(id, (typecast(-21461420, int)), msg)
+    def tellAlive(self, _id: Key) -> None:
+        _msg: str = radd(self.builtin_funcs.llGetObjectDesc(), "node_alive:")
+        if cond(_id):
+            self.builtin_funcs.llRegionSayTo(_id, (typecast(-21461420, int)), _msg)
         else:
             if cond(req("", self.gParentLogicalID)):
-                self.builtin_funcs.llWhisper((typecast(-21461420, int)), msg)
+                self.builtin_funcs.llWhisper((typecast(-21461420, int)), _msg)
             else:
-                self.builtin_funcs.llRegionSay((typecast(-21461420, int)), msg)
+                self.builtin_funcs.llRegionSay((typecast(-21461420, int)), _msg)
 
     def edefaultstate_entry(self) -> None:
         self.builtin_funcs.llSetStatus(16, 1)
@@ -84,7 +84,7 @@ class Script(BaseLSLScript):
         self.builtin_funcs.llSetText("", Vector(((1.0), (1.0), (1.0))), 0.0)
         self.gStartTime = self.builtin_funcs.llGetUnixTime()
 
-    def edefaulton_rez(self, start_param: int) -> None:
+    def edefaulton_rez(self, _start_param: int) -> None:
         if cond(rless(5, self.builtin_funcs.llAbs(radd(neg(self.builtin_funcs.llGetUnixTime()), self.gStartTime)))):
             return
         self.builtin_funcs.llSetObjectDesc("")
@@ -95,45 +95,45 @@ class Script(BaseLSLScript):
             self.restoreLogicalID(1)
             self.tellAlive(typecast("00000000-0000-0000-0000-000000000000", Key))
 
-    def edefaulttouch_start(self, total_number: int) -> None:
+    def edefaulttouch_start(self, _total_number: int) -> None:
         self.builtin_funcs.llRegionSay((typecast(-21461420, int)), radd(typecast(self.builtin_funcs.llDetectedKey(0), str), radd(":", radd(self.gParentLogicalID, "node_touched:"))))
 
-    def edefaultlisten(self, channel: int, name: str, id: Key, msg: str) -> None:
-        if cond(boolnot((req(self.builtin_funcs.llGetOwner(), self.builtin_funcs.llGetOwnerKey(id))))):
+    def edefaultlisten(self, _channel: int, _name: str, _id: Key, _msg: str) -> None:
+        if cond(boolnot((req(self.builtin_funcs.llGetOwner(), self.builtin_funcs.llGetOwnerKey(_id))))):
             return
-        params: list = self.builtin_funcs.llParseStringKeepNulls(msg, typecast(":", list), [])
-        cmd: str = self.builtin_funcs.llList2String(params, 0)
-        params = self.builtin_funcs.llDeleteSubList(params, 0, 0)
-        parent: Key = typecast(typecast(self.builtin_funcs.llGetObjectDetails(id, typecast(18, list)), str), Key)
-        if cond(req("node_assign", cmd)):
+        _params: list = self.builtin_funcs.llParseStringKeepNulls(_msg, typecast(":", list), [])
+        _cmd: str = self.builtin_funcs.llList2String(_params, 0)
+        _params = self.builtin_funcs.llDeleteSubList(_params, 0, 0)
+        _parent: Key = typecast(typecast(self.builtin_funcs.llGetObjectDetails(_id, typecast(18, list)), str), Key)
+        if cond(req("node_assign", _cmd)):
             if cond(boolnot(self.builtin_funcs.llGetStartParameter())):
                 return
             if cond(boolnot((req("", self.gOwnLogicalID)))):
                 return
-            self.gOwnLogicalID = self.builtin_funcs.llList2String(params, 0)
-            self.gParentLogicalID = self.builtin_funcs.llList2String(params, 1)
-            pos: Vector = typecast(self.builtin_funcs.llList2String(params, 2), Vector)
-            if cond(boolnot((req(Vector(((0.0), (0.0), (0.0))), pos)))):
-                self.builtin_funcs.llSetRegionPos(pos)
+            self.gOwnLogicalID = self.builtin_funcs.llList2String(_params, 0)
+            self.gParentLogicalID = self.builtin_funcs.llList2String(_params, 1)
+            _pos: Vector = typecast(self.builtin_funcs.llList2String(_params, 2), Vector)
+            if cond(boolnot((req(Vector(((0.0), (0.0), (0.0))), _pos)))):
+                self.builtin_funcs.llSetRegionPos(_pos)
             self.builtin_funcs.llSetObjectDesc(self.generateDescription())
         else:
-            if cond(req("node_reset", cmd)):
-                self.gOwnLogicalID = self.builtin_funcs.llList2String(params, 0)
-                self.gParentLogicalID = self.builtin_funcs.llList2String(params, 1)
+            if cond(req("node_reset", _cmd)):
+                self.gOwnLogicalID = self.builtin_funcs.llList2String(_params, 0)
+                self.gParentLogicalID = self.builtin_funcs.llList2String(_params, 1)
                 self.builtin_funcs.llSetObjectDesc(self.generateDescription())
             else:
-                if cond(req("node_kill_all", cmd)):
-                    if cond(rbitor(req(self.builtin_funcs.llList2String(params, 0), self.gParentLogicalID), req("", self.gParentLogicalID))):
+                if cond(req("node_kill_all", _cmd)):
+                    if cond(rbitor(req(self.builtin_funcs.llList2String(_params, 0), self.gParentLogicalID), req("", self.gParentLogicalID))):
                         self.builtin_funcs.llDie()
                 else:
-                    if cond(req("node_ping", cmd)):
+                    if cond(req("node_ping", _cmd)):
                         if cond(boolnot((req("", self.gParentLogicalID)))):
                             return
-                        self.tellAlive(parent)
+                        self.tellAlive(_parent)
                     else:
-                        if cond(req("node_text", cmd)):
-                            self.builtin_funcs.llSetText(self.builtin_funcs.llList2String(params, 0), typecast(self.builtin_funcs.llList2String(params, 1), Vector), self.builtin_funcs.llList2Float(params, 2))
+                        if cond(req("node_text", _cmd)):
+                            self.builtin_funcs.llSetText(self.builtin_funcs.llList2String(_params, 0), typecast(self.builtin_funcs.llList2String(_params, 1), Vector), self.builtin_funcs.llList2Float(_params, 2))
                         else:
-                            if cond(req("node_color", cmd)):
-                                self.builtin_funcs.llSetLinkPrimitiveParamsFast((typecast(-4, int)), radd(self.builtin_funcs.llList2Float(params, 1), radd(typecast(self.builtin_funcs.llList2String(params, 0), Vector), radd((typecast(-1, int)), typecast(18, list)))))
+                            if cond(req("node_color", _cmd)):
+                                self.builtin_funcs.llSetLinkPrimitiveParamsFast((typecast(-4, int)), radd(self.builtin_funcs.llList2Float(_params, 1), radd(typecast(self.builtin_funcs.llList2String(_params, 0), Vector), radd((typecast(-1, int)), typecast(18, list)))))
 

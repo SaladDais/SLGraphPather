@@ -1,3 +1,16 @@
 # Compiled and pythonized scripts are intentionally part of the repo
 # to ease distribution and reporting of coverage stats.
 # Just regen them when other merge conflicts are resolved...
+
+#use glob syntax
+syntax: glob
+
+__pycache__
+*.pyc
+build/*
+*.egg-info
+dist/*
+.coverage
+.eggs
+.pytest_cache
+.coverage*
