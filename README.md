@@ -1,6 +1,6 @@
 # In-SL Directed Graph Creation Tool
 
-![Screenshot](/images/screenshot.png)
+![Screenshot](images/screenshot.png)
 
 https://en.wikipedia.org/wiki/Directed_graph
 
@@ -52,20 +52,20 @@ Consists of:
 # Setup
 
 * Create a prim, call it "node manager"
-* * Take the contents of [compiled/node_manager.o.lsl](/compiled/node_manager.o.lsl) and create a script in the object, call it "node manager"
-* * Take the contents of [compiled/data_manager.o.lsl](/compiled/data_manager.o.lsl) and create a script in the object, call it "data manager"
-* * Take the contents of [compiled/rez_helper.o.lsl](/compiled/rez_helper.o.lsl) and create a script in your inventory, call it "rez_helper"
+* * Take the contents of [compiled/node_manager.o.lsl](compiled/node_manager.o.lsl) and create a script in the object, call it "node manager"
+* * Take the contents of [compiled/data_manager.o.lsl](compiled/data_manager.o.lsl) and create a script in the object, call it "data manager"
+* * Take the contents of [compiled/rez_helper.o.lsl](compiled/rez_helper.o.lsl) and create a script in your inventory, call it "rez_helper"
 * * * Drag 3 copies of the script into the "node manager" object
 * Create a prim, call it "node"
-* * Take the contents of [compiled/node.o.lsl](/compiled/node.o.lsl) and create a script in the object
+* * Take the contents of [compiled/node.o.lsl](compiled/node.o.lsl) and create a script in the object
 * * Take the "node" object and put it in the "node manager" object's inventory.
 * Create a prim, call it "arrow"
-* * Take the contents of [compiled/arrow.o.lsl](/compiled/arrow.o.lsl) and create a script in the object
+* * Take the contents of [compiled/arrow.o.lsl](compiled/arrow.o.lsl) and create a script in the object
 * * Take the "arrow" object and put it in the "node manager" object's inventory.
 
 The "node manager" object's inventory should now look something like:
 
-![Node manager inventory layout](/images/contents.png)
+![Node manager inventory layout](images/contents.png)
 
 # Usage
 
@@ -85,7 +85,7 @@ Clicking the "node manager" object will bring up a menu:
 * dump - dump a textual representation of all nodes and relations to chat
 * save - store the in-world representation of the graph to the data manager, needs to be done to update pathfinding view
 
-See [pathfinder_example.lsl](/pathfinder_example.lsl) for an example of how scripts can ask for paths.
+See [pathfinder_example.lsl](pathfinder_example.lsl) for an example of how scripts can ask for paths.
 
 # License
 
