@@ -10,6 +10,7 @@ from pythonized.data_manager import Script as DataManagerScript
 
 # Alexandria Linden
 TEST_OWNER = Key("ba2a564a-f0f1-4b82-9c61-b7520bfcd09f")
+NULL_KEY = Key("00000000-0000-0000-0000-000000000000")
 
 IPC_INIT_SAVE_INWORLD_STATE = 800
 IPC_FINISH_SAVE_INWORLD_STATE = 801
@@ -73,8 +74,8 @@ class MockedDataManagerScript(DataManagerScript, ScriptMockMixin):
             node_src = typecast(node_src, str)
         if isinstance(node_dst, Vector):
             node_dst = typecast(node_dst, str)
-        src_idx = self.nodeRefToIdx(node_src, Key())
-        dst_idx = self.nodeRefToIdx(node_dst, Key())
+        src_idx = self.nodeRefToIdx(node_src, NULL_KEY)
+        dst_idx = self.nodeRefToIdx(node_dst, NULL_KEY)
         return self.dijkstraFindPath(src_idx, dst_idx)
 
 
@@ -102,7 +103,7 @@ class PathfindingTests(unittest.TestCase):
 
         self.data_manager.calculateEdgeWeights()
 
-    def _get_path_ids(self, src: str, dst: str):
+    def _get_path_ids(self, src: Union[Vector, str], dst: Union[Vector, str]):
         return self.data_manager.pathToIDs(self.data_manager.request_path(src, dst))
 
     def test_simple_path(self):
@@ -116,3 +117,18 @@ class PathfindingTests(unittest.TestCase):
     def test_island_path(self):
         # No connection == no valid path
         self.assertListEqual([], self._get_path_ids("3", "island"))
+
+    def test_closest_node_path(self):
+        # 1 and 3 are closest to src and dst coords, respectively.
+        self.assertListEqual(['1', '2', '3'], self._get_path_ids(Vector((1, 2, 3)), Vector((1, 8, 3))))
+
+    def test_path_as_vectors(self):
+        path_vecs = self.data_manager.pathToVectors(self.data_manager.request_path("1", "3"))
+        self.assertListEqual(
+            [
+                Vector((1.0, 2.0, 3.0)),
+                Vector((1.0, 6.0, 3.0)),
+                Vector((1.0, 8.0, 3.0)),
+            ],
+            path_vecs,
+        )
