@@ -1,0 +1,38 @@
+name: Compile LSL and run tests
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        # Pull in and compile Lummao and all of its dependencies
+        git clone --recurse-submodules https://github.com/SaladDais/Lummao.git ~/Lummao
+        source ~/Lummao/bootstrap_ubuntu_ci.sh
+        # Var was exported by `bootstrap_ubuntu_ci.sh`
+        echo "LSL_PYOPTIMIZER_PATH=${LSL_PYOPTIMIZER_PATH}" >> $GITHUB_ENV
+        # We need to manually install this
+        pushd ~/Lummao
+        python setup.py develop
+
+    - name: Compile
+      run: |
+        bash compile.sh
+
+    - name: Run Lummao Tests
+      run: |
+        python run_tests.py
