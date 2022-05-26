@@ -1,5 +1,7 @@
 # In-SL Directed Graph Creation Tool
 
+[![codecov](https://codecov.io/gh/SaladDais/SLGraphPather/branch/master/graph/badge.svg?token=X8C7AXZT3U)](https://codecov.io/gh/SaladDais/SLGraphPather)
+
 ![Screenshot](images/screenshot.png)
 
 https://en.wikipedia.org/wiki/Directed_graph
