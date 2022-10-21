@@ -54,26 +54,22 @@ class Script(BaseLSLScript):
             self.gParentLogicalID = self.builtin_funcs.llList2String(_params, 4)
             self.builtin_funcs.llSetTimerEvent((1.0))
             self.point()
-        else:
-            if cond(req("arrow_kill", _cmd)):
-                if cond(rbitand(req(self.gEndNodeID, self.builtin_funcs.llList2String(_params, 1)), req(self.gStartNodeID, self.builtin_funcs.llList2String(_params, 0)))):
-                    self.builtin_funcs.llDie()
+        elif cond(req("arrow_kill", _cmd)):
+            if cond(rbitand(req(self.gEndNodeID, self.builtin_funcs.llList2String(_params, 1)), req(self.gStartNodeID, self.builtin_funcs.llList2String(_params, 0)))):
+                self.builtin_funcs.llDie()
+        elif cond(req("arrow_kill_all", _cmd)):
+            if cond(rbitor(req(self.builtin_funcs.llList2String(_params, 0), self.gParentLogicalID), req("", self.gParentLogicalID))):
+                self.builtin_funcs.llDie()
+        elif cond(req("arrow_node_identity", _cmd)):
+            _node_id: str = self.builtin_funcs.llList2String(_params, 0)
+            _node_key: Key = self.builtin_funcs.llList2Key(_params, 1)
+            if cond(req(self.gStartNodeID, _node_id)):
+                self.gStartNodeKey = _node_key
+            elif cond(req(self.gEndNodeID, _node_id)):
+                self.gEndNodeKey = _node_key
             else:
-                if cond(req("arrow_kill_all", _cmd)):
-                    if cond(rbitor(req(self.builtin_funcs.llList2String(_params, 0), self.gParentLogicalID), req("", self.gParentLogicalID))):
-                        self.builtin_funcs.llDie()
-                else:
-                    if cond(req("arrow_node_identity", _cmd)):
-                        _node_id: str = self.builtin_funcs.llList2String(_params, 0)
-                        _node_key: Key = self.builtin_funcs.llList2Key(_params, 1)
-                        if cond(req(self.gStartNodeID, _node_id)):
-                            self.gStartNodeKey = _node_key
-                        else:
-                            if cond(req(self.gEndNodeID, _node_id)):
-                                self.gEndNodeKey = _node_key
-                            else:
-                                return
-                        self.point()
+                return
+            self.point()
 
     def edefaulttimer(self) -> None:
         self.point()

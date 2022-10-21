@@ -18,11 +18,10 @@ class Script(BaseLSLScript):
             _parsed: list = self.builtin_funcs.llParseString2List(_desc, typecast(":", list), [])
             self.gOwnLogicalID = self.builtin_funcs.llList2String(_parsed, 0)
             self.gParentLogicalID = self.builtin_funcs.llList2String(_parsed, 1)
-        else:
-            if cond(_create):
-                self.gOwnLogicalID = self.generateLogicalID()
-                self.gParentLogicalID = ""
-                self.builtin_funcs.llSetObjectDesc(self.generateDescription())
+        elif cond(_create):
+            self.gOwnLogicalID = self.generateLogicalID()
+            self.gParentLogicalID = ""
+            self.builtin_funcs.llSetObjectDesc(self.generateDescription())
 
     def generateDescription(self) -> str:
         return radd(self.gParentLogicalID, radd(":", self.gOwnLogicalID))
@@ -52,14 +51,12 @@ class Script(BaseLSLScript):
             if cond(req("0", _A)):
                 _A = "e"
                 _D = "8"
-            else:
-                if cond(req("d", _A)):
-                    _A = "e"
-                    _D = "9"
-                else:
-                    if cond(req("f", _A)):
-                        _A = "e"
-                        _D = "a"
+            elif cond(req("d", _A)):
+                _A = "e"
+                _D = "9"
+            elif cond(req("f", _A)):
+                _A = "e"
+                _D = "a"
             _ret = radd((radd(_C, radd("%b", radd(_B, radd(_D, radd("%", radd(_A, "%e"))))))), _ret)
         return self.builtin_funcs.llUnescapeURL(_ret)
 
@@ -70,11 +67,10 @@ class Script(BaseLSLScript):
         _msg: str = radd(self.builtin_funcs.llGetObjectDesc(), "node_alive:")
         if cond(_id):
             self.builtin_funcs.llRegionSayTo(_id, (typecast(-21461420, int)), _msg)
+        elif cond(req("", self.gParentLogicalID)):
+            self.builtin_funcs.llWhisper((typecast(-21461420, int)), _msg)
         else:
-            if cond(req("", self.gParentLogicalID)):
-                self.builtin_funcs.llWhisper((typecast(-21461420, int)), _msg)
-            else:
-                self.builtin_funcs.llRegionSay((typecast(-21461420, int)), _msg)
+            self.builtin_funcs.llRegionSay((typecast(-21461420, int)), _msg)
 
     def edefaultstate_entry(self) -> None:
         self.builtin_funcs.llSetStatus(16, 1)
@@ -116,24 +112,19 @@ class Script(BaseLSLScript):
             if cond(boolnot((req(Vector(((0.0), (0.0), (0.0))), _pos)))):
                 self.builtin_funcs.llSetRegionPos(_pos)
             self.builtin_funcs.llSetObjectDesc(self.generateDescription())
-        else:
-            if cond(req("node_reset", _cmd)):
-                self.gOwnLogicalID = self.builtin_funcs.llList2String(_params, 0)
-                self.gParentLogicalID = self.builtin_funcs.llList2String(_params, 1)
-                self.builtin_funcs.llSetObjectDesc(self.generateDescription())
-            else:
-                if cond(req("node_kill_all", _cmd)):
-                    if cond(rbitor(req(self.builtin_funcs.llList2String(_params, 0), self.gParentLogicalID), req("", self.gParentLogicalID))):
-                        self.builtin_funcs.llDie()
-                else:
-                    if cond(req("node_ping", _cmd)):
-                        if cond(boolnot((req("", self.gParentLogicalID)))):
-                            return
-                        self.tellAlive(_parent)
-                    else:
-                        if cond(req("node_text", _cmd)):
-                            self.builtin_funcs.llSetText(self.builtin_funcs.llList2String(_params, 0), typecast(self.builtin_funcs.llList2String(_params, 1), Vector), self.builtin_funcs.llList2Float(_params, 2))
-                        else:
-                            if cond(req("node_color", _cmd)):
-                                self.builtin_funcs.llSetLinkPrimitiveParamsFast((typecast(-4, int)), radd(self.builtin_funcs.llList2Float(_params, 1), radd(typecast(self.builtin_funcs.llList2String(_params, 0), Vector), radd((typecast(-1, int)), typecast(18, list)))))
+        elif cond(req("node_reset", _cmd)):
+            self.gOwnLogicalID = self.builtin_funcs.llList2String(_params, 0)
+            self.gParentLogicalID = self.builtin_funcs.llList2String(_params, 1)
+            self.builtin_funcs.llSetObjectDesc(self.generateDescription())
+        elif cond(req("node_kill_all", _cmd)):
+            if cond(rbitor(req(self.builtin_funcs.llList2String(_params, 0), self.gParentLogicalID), req("", self.gParentLogicalID))):
+                self.builtin_funcs.llDie()
+        elif cond(req("node_ping", _cmd)):
+            if cond(boolnot((req("", self.gParentLogicalID)))):
+                return
+            self.tellAlive(_parent)
+        elif cond(req("node_text", _cmd)):
+            self.builtin_funcs.llSetText(self.builtin_funcs.llList2String(_params, 0), typecast(self.builtin_funcs.llList2String(_params, 1), Vector), self.builtin_funcs.llList2Float(_params, 2))
+        elif cond(req("node_color", _cmd)):
+            self.builtin_funcs.llSetLinkPrimitiveParamsFast((typecast(-4, int)), radd(self.builtin_funcs.llList2Float(_params, 1), radd(typecast(self.builtin_funcs.llList2String(_params, 0), Vector), radd((typecast(-1, int)), typecast(18, list)))))
 

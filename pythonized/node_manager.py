@@ -54,11 +54,10 @@ class Script(BaseLSLScript):
             _parsed: list = self.builtin_funcs.llParseString2List(_desc, typecast(":", list), [])
             self.gOwnLogicalID = self.builtin_funcs.llList2String(_parsed, 0)
             self.gParentLogicalID = self.builtin_funcs.llList2String(_parsed, 1)
-        else:
-            if cond(_create):
-                self.gOwnLogicalID = self.generateLogicalID()
-                self.gParentLogicalID = ""
-                self.builtin_funcs.llSetObjectDesc(self.generateDescription())
+        elif cond(_create):
+            self.gOwnLogicalID = self.generateLogicalID()
+            self.gParentLogicalID = ""
+            self.builtin_funcs.llSetObjectDesc(self.generateDescription())
 
     def generateDescription(self) -> str:
         return radd(self.gParentLogicalID, radd(":", self.gOwnLogicalID))
@@ -88,14 +87,12 @@ class Script(BaseLSLScript):
             if cond(req("0", _A)):
                 _A = "e"
                 _D = "8"
-            else:
-                if cond(req("d", _A)):
-                    _A = "e"
-                    _D = "9"
-                else:
-                    if cond(req("f", _A)):
-                        _A = "e"
-                        _D = "a"
+            elif cond(req("d", _A)):
+                _A = "e"
+                _D = "9"
+            elif cond(req("f", _A)):
+                _A = "e"
+                _D = "a"
             _ret = radd((radd(_C, radd("%b", radd(_B, radd(_D, radd("%", radd(_A, "%e"))))))), _ret)
         return self.builtin_funcs.llUnescapeURL(_ret)
 
@@ -120,12 +117,10 @@ class Script(BaseLSLScript):
             _D = self.builtin_funcs.llGetSubString(_s, radd(_i, 4), radd(_i, 4))
             if cond(req("8", _D)):
                 _A = "0"
-            else:
-                if cond(req("9", _D)):
-                    _A = "d"
-                else:
-                    if cond(req("a", _D)):
-                        _A = "f"
+            elif cond(req("9", _D)):
+                _A = "d"
+            elif cond(req("a", _D)):
+                _A = "f"
             _ret = radd(_C, radd(_B, radd(_A, _ret)))
             _i = radd(_i, 9)
         return typecast(self.padDash(_ret), Key)
@@ -211,10 +206,9 @@ class Script(BaseLSLScript):
                     _dst_id: str = self.builtin_funcs.llList2String(self.gNodes, _dst_idx)
                     self.builtin_funcs.llRegionSay((typecast(-21461419, int)), radd(_dst_id, radd(":", radd(_src_id, "arrow_kill:"))))
                     self.gNodeRelations = self.builtin_funcs.llDeleteSubList(self.gNodeRelations, _i, _i)
-                else:
-                    if cond(rbitor(rbitxor(_dst_idx, _new_dst_idx), rbitxor(_src_idx, _new_src_idx))):
-                        _new_rel: int = rbitor(_new_dst_idx, rmul(65536, _new_src_idx))
-                        self.gNodeRelations = self.builtin_funcs.llListReplaceList(self.gNodeRelations, typecast(_new_rel, list), _i, _i)
+                elif cond(rbitor(rbitxor(_dst_idx, _new_dst_idx), rbitxor(_src_idx, _new_src_idx))):
+                    _new_rel: int = rbitor(_new_dst_idx, rmul(65536, _new_src_idx))
+                    self.gNodeRelations = self.builtin_funcs.llListReplaceList(self.gNodeRelations, typecast(_new_rel, list), _i, _i)
                 _i -= 1
         self.gNodes = self.builtin_funcs.llDeleteSubList(self.gNodes, _node_idx, neg(bitnot(_node_idx)))
 
@@ -368,11 +362,10 @@ class Script(BaseLSLScript):
                         _num: int = 0
                         if cond(req("find_path", _cmd)):
                             _num = 1000
+                        elif cond(req("find_path_vectors", _cmd)):
+                            _num = 1001
                         else:
-                            if cond(req("find_path_vectors", _cmd)):
-                                _num = 1001
-                            else:
-                                return
+                            return
                         if cond(rbitor(boolnot((req(self.gOwnLogicalID, self.builtin_funcs.llList2String(_params, 0)))), req("", self.gOwnLogicalID))):
                             return
                         _link_msg: str = radd(self.builtin_funcs.llList2String(_params, 2), radd(":", self.builtin_funcs.llList2String(_params, 1)))
@@ -382,45 +375,38 @@ class Script(BaseLSLScript):
                         self.removeRelation(self.gFirstClicked, self.gSecondClicked)
                         self.removeRelation(self.gSecondClicked, self.gFirstClicked)
                         self.gGraphDirty = 1
-                    else:
-                        if cond(req("one-way", _msg)):
-                            self.addRelation(self.gFirstClicked, self.gSecondClicked)
-                            self.removeRelation(self.gSecondClicked, self.gFirstClicked)
-                            self.gGraphDirty = 1
+                    elif cond(req("one-way", _msg)):
+                        self.addRelation(self.gFirstClicked, self.gSecondClicked)
+                        self.removeRelation(self.gSecondClicked, self.gFirstClicked)
+                        self.gGraphDirty = 1
+                    elif cond(req("two-way", _msg)):
+                        self.addRelation(self.gFirstClicked, self.gSecondClicked)
+                        self.addRelation(self.gSecondClicked, self.gFirstClicked)
+                        self.gGraphDirty = 1
+                    elif cond(req("find path", _msg)):
+                        if cond(self.gGraphDirty):
+                            self.builtin_funcs.llOwnerSay("Refusing to find path, graph is dirty")
                         else:
-                            if cond(req("two-way", _msg)):
-                                self.addRelation(self.gFirstClicked, self.gSecondClicked)
-                                self.addRelation(self.gSecondClicked, self.gFirstClicked)
-                                self.gGraphDirty = 1
-                            else:
-                                if cond(req("find path", _msg)):
-                                    if cond(self.gGraphDirty):
-                                        self.builtin_funcs.llOwnerSay("Refusing to find path, graph is dirty")
-                                    else:
-                                        self.builtin_funcs.llOwnerSay(radd(self.gSecondClicked, radd(" to ", radd(self.gFirstClicked, "Calculating path from "))))
-                                        self.builtin_funcs.llMessageLinked((typecast(-4, int)), 1000, radd(self.gSecondClicked, radd(":", self.gFirstClicked)), typecast("00000000-0000-0000-0000-000000000000", Key))
+                            self.builtin_funcs.llOwnerSay(radd(self.gSecondClicked, radd(" to ", radd(self.gFirstClicked, "Calculating path from "))))
+                            self.builtin_funcs.llMessageLinked((typecast(-4, int)), 1000, radd(self.gSecondClicked, radd(":", self.gFirstClicked)), typecast("00000000-0000-0000-0000-000000000000", Key))
                     self.gFirstClicked = ""
                     self.gSecondClicked = ""
                     self.gClickTimeout = 0
             else:
                 if cond(req("dump", _msg)):
                     self.dumpNodeDetails()
-                else:
-                    if cond(req("save", _msg)):
-                        if cond(rneq([], self.gNodes)):
-                            self.saveNodes()
-                        else:
-                            self.builtin_funcs.llOwnerSay("Refusing to save empty node list")
+                elif cond(req("save", _msg)):
+                    if cond(rneq([], self.gNodes)):
+                        self.saveNodes()
                     else:
-                        if cond(req("restore", _msg)):
-                            self.initRestoreNodes(1)
-                        else:
-                            if cond(req("rest. norel", _msg)):
-                                self.initRestoreNodes(0)
-                            else:
-                                if cond(req("clear", _msg)):
-                                    self.clearAll()
-                                    self.builtin_funcs.llResetScript()
+                        self.builtin_funcs.llOwnerSay("Refusing to save empty node list")
+                elif cond(req("restore", _msg)):
+                    self.initRestoreNodes(1)
+                elif cond(req("rest. norel", _msg)):
+                    self.initRestoreNodes(0)
+                elif cond(req("clear", _msg)):
+                    self.clearAll()
+                    self.builtin_funcs.llResetScript()
         else:
             _node_key: Key = _id
             if cond(req("node_alive", _cmd)):
@@ -434,36 +420,34 @@ class Script(BaseLSLScript):
                     self.trackNode(_node_id, _node_key)
                     self.builtin_funcs.llRegionSayTo(_node_key, (typecast(-21461419, int)), radd(self.gOwnLogicalID, radd(":", radd(_node_id, "node_reset:"))))
                     self.gGraphDirty = 1
-                else:
-                    if cond(rbitor(req(_node_id, _existing_id), req("", _existing_id))):
-                        if cond(boolnot((req(_node_key, _existing_key)))):
-                            self.handleNodeDuplicated(_existing_key, _node_key, _node_id)
-                            self.gGraphDirty = 1
-                    else:
-                        self.builtin_funcs.llOwnerSay(radd(_existing_id, radd(" != ", radd(_node_id, radd(" had mismatch, ", radd(typecast(_node_key, str), "node hello from "))))))
-                        self.handleNodeRenamed(_existing_id, _node_key, _node_id)
+                elif cond(rbitor(req(_node_id, _existing_id), req("", _existing_id))):
+                    if cond(boolnot((req(_node_key, _existing_key)))):
+                        self.handleNodeDuplicated(_existing_key, _node_key, _node_id)
                         self.gGraphDirty = 1
-            else:
-                if cond(req("node_touched", _cmd)):
-                    _clicked_id: str = self.nodeKeyToID(_node_key)
-                    if cond(req("", _clicked_id)):
-                        return
-                    if cond(boolnot((req(self.gOwnLogicalID, self.builtin_funcs.llList2String(_params, 0))))):
-                        return
-                    _toucher_id: Key = self.builtin_funcs.llList2Key(_params, 1)
-                    if cond(boolnot((req(self.builtin_funcs.llGetOwner(), _toucher_id)))):
-                        return
-                    if cond(rbitor(req("", self.gSecondClicked), req("", self.gFirstClicked))):
-                        if cond(req("", self.gFirstClicked)):
-                            self.gFirstClicked = _clicked_id
-                        else:
-                            if cond(boolnot((req(self.gFirstClicked, _clicked_id)))):
-                                self.gSecondClicked = _clicked_id
-                                self.builtin_funcs.llDialog(_toucher_id, "What do you want to do with the connection?", radd("find path", radd("remove", radd("two-way", typecast("one-way", list)))), self.gConnectionMenuChannel)
-                    else:
+                else:
+                    self.builtin_funcs.llOwnerSay(radd(_existing_id, radd(" != ", radd(_node_id, radd(" had mismatch, ", radd(typecast(_node_key, str), "node hello from "))))))
+                    self.handleNodeRenamed(_existing_id, _node_key, _node_id)
+                    self.gGraphDirty = 1
+            elif cond(req("node_touched", _cmd)):
+                _clicked_id: str = self.nodeKeyToID(_node_key)
+                if cond(req("", _clicked_id)):
+                    return
+                if cond(boolnot((req(self.gOwnLogicalID, self.builtin_funcs.llList2String(_params, 0))))):
+                    return
+                _toucher_id: Key = self.builtin_funcs.llList2Key(_params, 1)
+                if cond(boolnot((req(self.builtin_funcs.llGetOwner(), _toucher_id)))):
+                    return
+                if cond(rbitor(req("", self.gSecondClicked), req("", self.gFirstClicked))):
+                    if cond(req("", self.gFirstClicked)):
                         self.gFirstClicked = _clicked_id
-                        self.gSecondClicked = ""
-                    self.gClickTimeout = radd(self.builtin_funcs.llGetUnixTime(), 20)
+                    else:
+                        if cond(boolnot((req(self.gFirstClicked, _clicked_id)))):
+                            self.gSecondClicked = _clicked_id
+                            self.builtin_funcs.llDialog(_toucher_id, "What do you want to do with the connection?", radd("find path", radd("remove", radd("two-way", typecast("one-way", list)))), self.gConnectionMenuChannel)
+                else:
+                    self.gFirstClicked = _clicked_id
+                    self.gSecondClicked = ""
+                self.gClickTimeout = radd(self.builtin_funcs.llGetUnixTime(), 20)
 
     def edefaultlink_message(self, _sender_num: int, _num: int, _str: str, _id: Key) -> None:
         if cond(rbitxor(902, _num)):
@@ -506,19 +490,17 @@ class Script(BaseLSLScript):
             self.builtin_funcs.llRegionSayTo(_id, (typecast(-21461419, int)), radd(typecast(_node_pos, str), radd(":", radd(self.gOwnLogicalID, radd(":", radd(_node_id, "node_assign:"))))))
             self.gPendingNodes = self.builtin_funcs.llDeleteSubList(self.gPendingNodes, 0, 1)
             self.trackNode(_node_id, _id)
-        else:
-            if cond(req("arrow", _name)):
-                if cond(req([], self.gPendingRelations)):
-                    self.builtin_funcs.llOwnerSay("Rezzed arrow with no pending relations???")
-                    return
-                self.gArrowPool = radd(_id, self.gArrowPool)
-                self.updateNodeRelations()
+        elif cond(req("arrow", _name)):
+            if cond(req([], self.gPendingRelations)):
+                self.builtin_funcs.llOwnerSay("Rezzed arrow with no pending relations???")
+                return
+            self.gArrowPool = radd(_id, self.gArrowPool)
+            self.updateNodeRelations()
         if cond(rbitor(rneq([], self.gPendingRelations), rbitor(rneq([], self.gPendingNodes), rbitor(self.gNeededNodes, self.gNeededArrows)))):
             self.tryRezPending()
-        else:
-            if cond(self.gRestoring):
-                self.gRestoring = 0
-                self.builtin_funcs.llOwnerSay("Done rez")
+        elif cond(self.gRestoring):
+            self.gRestoring = 0
+            self.builtin_funcs.llOwnerSay("Done rez")
 
     def edefaulttouch_start(self, _touch_num: int) -> None:
         if cond(boolnot((req(self.builtin_funcs.llGetOwner(), self.builtin_funcs.llDetectedKey(0))))):
