@@ -1,10 +1,7 @@
 import unittest
 from typing import Dict, Union, List
 
-from lummao import BaseLSLScript
-# Import order matters here because of how we have to import LSL-PyOptimizer...
-from lslopt.lslbasefuncs import typecast
-from lslopt.lslcommon import Key, Vector
+from lummao import BaseLSLScript, typecast, Key, Vector
 
 from pythonized.data_manager import Script as DataManagerScript
 
@@ -132,3 +129,7 @@ class PathfindingTests(unittest.TestCase):
             ],
             path_vecs,
         )
+
+
+if __name__ == "__main__":
+    unittest.main()
