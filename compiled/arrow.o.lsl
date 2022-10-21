@@ -106,17 +106,26 @@ key gEndNodeKey;
 
 point()
 {
-    vector start = llList2Vector(llGetObjectDetails(gStartNodeKey, (list)3), 0);
-    vector end = llList2Vector(llGetObjectDetails(gEndNodeKey, (list)3), 0);
-    if (start == <((float)0), ((float)0), ((float)0)> | end == <((float)0), ((float)0), ((float)0)>)
+    vector start = llList2Vector(llGetObjectDetails(gStartNodeKey, [3]), 0);
+    vector end = llList2Vector(llGetObjectDetails(gEndNodeKey, [3]), 0);
+    if (start == <((float)0), ((float)0), ((float)0)> || end == <((float)0), ((float)0), ((float)0)>)
     {
         llOwnerSay("Tracked object gone away?!?");
         llDie();
     }
     vector diff = end - start;
-    rotation facing_rot = llRotBetween(<((float)0), ((float)0), ((float)1)>, llVecNorm(diff));
+    rotation facing_rot = llRotBetween(<0, 0, 1>, llVecNorm(diff));
     vector color = llRot2Euler(facing_rot) / 3.1415927;
-    llSetLinkPrimitiveParamsFast(((integer)-4), (list)7 + <0.15, 0.15, ((integer)-1) + llVecMag(diff)> + 8 + facing_rot + 18 + ((integer)-1) + color + ((float)1));
+    llSetLinkPrimitiveParamsFast(((integer)-4), 
+        [ 7
+        , <0.15, 0.15, llVecMag(diff) - 1>
+        , 8
+        , facing_rot
+        , 18
+        , ((integer)-1)
+        , color
+        , ((float)1)
+        ]);
     llSetRegionPos(start + diff * 0.5);
 }
 
@@ -125,7 +134,16 @@ default
     state_entry()
     {
         llSetStatus(16, 1);
-        llSetLinkPrimitiveParamsFast(((integer)-4), (list)9 + 1 + 0 + <((float)0), ((float)1), ((float)0)> + 0 + <((float)0), ((float)0), ((float)0)> + <((float)0), ((float)0), ((float)0)> + <((float)0), ((float)0), ((float)0)>);
+        llSetLinkPrimitiveParamsFast(((integer)-4), 
+            [ 9
+            , 1
+            , 0
+            , <0, 1, 0>
+            , 0
+            , <((float)0), ((float)0), ((float)0)>
+            , <((float)0), ((float)0), ((float)0)>
+            , <((float)0), ((float)0), ((float)0)>
+            ]);
         llListen(((integer)-21461419), "", "", "");
     }
 
@@ -136,11 +154,11 @@ default
 
     listen(integer channel, string name, key id, string msg)
     {
-        if (!(llGetOwnerKey(id) == llGetOwner()))
+        if (llGetOwnerKey(id) != llGetOwner())
             return;
         if (!llGetStartParameter())
             return;
-        list params = llParseStringKeepNulls(msg, (list)":", []);
+        list params = llParseStringKeepNulls(msg, [":"], []);
         string cmd = llList2String(params, 0);
         params = llDeleteSubList(params, 0, 0);
         if (cmd == "arrow_add")
@@ -159,14 +177,14 @@ default
         }
         else if (cmd == "arrow_kill")
         {
-            if (llList2String(params, 0) == gStartNodeID & llList2String(params, 1) == gEndNodeID)
+            if (llList2String(params, 0) == gStartNodeID && llList2String(params, 1) == gEndNodeID)
             {
                 llDie();
             }
         }
         else if (cmd == "arrow_kill_all")
         {
-            if (gParentLogicalID == "" | gParentLogicalID == llList2String(params, 0))
+            if (gParentLogicalID == "" || gParentLogicalID == llList2String(params, 0))
             {
                 llDie();
             }

@@ -60,14 +60,14 @@ default
     {
         llSetMemoryLimit(10000);
         string script_name = llGetScriptName();
-        if (llSubStringIndex(llGetScriptName(), "rez_helper"))
+        if (llSubStringIndex(llGetScriptName(), "rez_helper") != 0)
         {
             llOwnerSay("Script name must start with rez_helper!");
             return;
         }
-        list parsed_name = llParseString2List(script_name, (list)" ", []);
+        list parsed_name = llParseString2List(script_name, [" "], []);
         string name_prefix = llList2String(parsed_name, 0);
-        gScriptNum = llList2Integer(parsed_name, ((integer)-1));
+        gScriptNum = llList2Integer(parsed_name, -1);
         integer i;
         integer len = llGetInventoryNumber(10);
         for (i = 0; i < len; ++i)
@@ -81,12 +81,12 @@ default
 
     link_message(integer sender_num, integer num, string str, key id)
     {
-        if (num ^ 1100)
+        if (num != 1100)
             return;
         if (!gNumScripts)
             return;
         integer obj_num = (integer)str;
-        if (obj_num % gNumScripts ^ gScriptNum)
+        if (obj_num % gNumScripts != gScriptNum)
             return;
         llRezAtRoot((string)id, llGetPos(), <((float)0), ((float)0), ((float)0)>, <((float)0), ((float)0), ((float)0), ((float)1)>, 1);
     }

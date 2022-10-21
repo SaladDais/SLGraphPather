@@ -123,18 +123,18 @@ default {
 //mono
 
 list gWaypoints;
-vector gLastPos = <0, 0, 0>;
-vector gDesiredPos = <0, 0, 0>;
-float gHeightOffset = 0;
+vector gLastPos;
+vector gDesiredPos;
+float gHeightOffset;
 
 vector waypointToPos(vector waypoint)
 {
-    return <waypoint.x, waypoint.y, ((float)-0.25) + waypoint.z + gHeightOffset>;
+    return <waypoint.x, waypoint.y, waypoint.z - 0.25 + gHeightOffset>;
 }
 
 vector posToWaypoint(vector pos)
 {
-    return <pos.x, pos.y, 0.25 + pos.z + -gHeightOffset>;
+    return <pos.x, pos.y, pos.z + 0.25 - gHeightOffset>;
 }
 
 goToNextWaypoint()
@@ -145,11 +145,11 @@ goToNextWaypoint()
         gWaypoints = llDeleteSubList(gWaypoints, 0, 0);
         vector diff = gDesiredPos - gLastPos;
         float travel_time = llVecDist(gLastPos, gDesiredPos) * 0.5;
-        if (!(travel_time < 0.001))
+        if (travel_time >= 0.001)
         {
-            if (!(travel_time < 0.1))
+            if (travel_time >= 0.1)
             {
-                llSetKeyframedMotion((list)diff + travel_time, (list)2 + 2);
+                llSetKeyframedMotion([diff, travel_time], [2, 2]);
             }
             llSetTimerEvent(travel_time);
             return;
@@ -164,35 +164,23 @@ default
     {
         vector min_corner = llList2Vector(llGetBoundingBox(llGetKey()), 0);
         gHeightOffset = -min_corner.z;
-        llSetLinkPrimitiveParamsFast(((integer)-4), (list)30 + 2);
-        llSetKeyframedMotion((list)<((float)0), ((float)0), ((float)0)> + 0.15, (list)2 + 2);
-        llSitTarget(<((float)0), ((float)0), ((float)1)>, <((float)0), ((float)0), ((float)0), ((float)1)>);
+        llSetLinkPrimitiveParamsFast(((integer)-4), [30, 2]);
+        llSetKeyframedMotion([<((float)0), ((float)0), ((float)0)>, 0.15], [2, 2]);
+        llSitTarget(<0, 0, 1>, <((float)0), ((float)0), ((float)0), ((float)1)>);
         llListen(((integer)-21461424), "", "", "");
         llListen(0, "", "", "I summon thee");
     }
 
     listen(integer channel, string name, key id, string msg)
     {
-        if (channel ^ ((integer)-21461424))
+        if (channel == ((integer)-21461424))
         {
-            if (!channel)
-            {
-                llSetKeyframedMotion([], (list)0 + 2);
-                llSetTimerEvent(0);
-                vector target_pos = llList2Vector(llGetObjectDetails(id, (list)3), 0);
-                string resp_msg = "find_path_vectors:REPLACEME:" + (string)posToWaypoint(llGetPos()) + ":" + (string)target_pos;
-                llRegionSay(((integer)-21461423), resp_msg);
-                llResetTime();
-            }
-        }
-        else
-        {
-            if (!(llGetOwnerKey(id) == llGetOwner()))
+            if (llGetOwnerKey(id) != llGetOwner())
                 return;
-            list params = llParseString2List(msg, (list)":", []);
+            list params = llParseString2List(msg, [":"], []);
             string cmd = llList2String(params, 0);
             params = llDeleteSubList(params, 0, 0);
-            if (!(cmd == "path"))
+            if (cmd != "path")
             {
                 return;
             }
@@ -206,11 +194,20 @@ default
             gWaypoints = params;
             goToNextWaypoint();
         }
+        else if (channel == 0)
+        {
+            llSetKeyframedMotion([], [0, 2]);
+            llSetTimerEvent(0);
+            vector target_pos = llList2Vector(llGetObjectDetails(id, [3]), 0);
+            string resp_msg = "find_path_vectors:" + "REPLACEME" + ":" + (string)posToWaypoint(llGetPos()) + ":" + (string)target_pos;
+            llRegionSay(((integer)-21461423), resp_msg);
+            llResetTime();
+        }
     }
 
     timer()
     {
-        llSetKeyframedMotion([], (list)0 + 2);
+        llSetKeyframedMotion([], [0, 2]);
         llSetRegionPos(gDesiredPos);
         gLastPos = gDesiredPos;
         goToNextWaypoint();

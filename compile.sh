@@ -34,7 +34,7 @@ for f in *."lsl"; do
 	basef=$(basename "$f" ".lsl")
 	compiledf="compiled/${basef}.o.lsl"
 	pythonizedf="pythonized/${basef}.py"
-	python "${LSL_PYOPTIMIZER_PATH}/main.py" -P "-I" -P "include" -H -O addstrings,-extendedglobalexpr -p gcpp --precmd=cpp "$f" -o "$compiledf"
+	python "${LSL_PYOPTIMIZER_PATH}/main.py" -P "-I" -P "include" -H -O addstrings,-extendedglobalexpr,-ConstFold -p gcpp --precmd=cpp "$f" -o "$compiledf"
 	if [ "${BUILD_PYTHON_HARNESSES}" == 1 ]; then
 		lummao "$compiledf" "$pythonizedf"
 	fi

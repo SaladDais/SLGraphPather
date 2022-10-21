@@ -372,16 +372,16 @@ calculateEdgeWeights()
 {
     gWeightedEdges = [];
     integer i;
-    integer len = gNodeRelations != [];
+    integer len = llGetListLength(gNodeRelations);
     for (i = 0; i < len; ++i)
     {
         integer rel = llList2Integer(gNodeRelations, i);
         string src = llList2String(gNodes, rel >> 16);
         string dst = llList2String(gNodes, rel & 65535);
-        integer src_idx = llListFindList(gNodes, (list)src);
-        integer dst_idx = llListFindList(gNodes, (list)dst);
-        float dist = llVecDist(llList2Vector(gNodes, -~src_idx), llList2Vector(gNodes, -~dst_idx));
-        gWeightedEdges = gWeightedEdges + src_idx / 2 + "" + dst_idx / 2 + dist;
+        integer src_idx = llListFindList(gNodes, [src]);
+        integer dst_idx = llListFindList(gNodes, [dst]);
+        float dist = llVecDist(llList2Vector(gNodes, src_idx + 1), llList2Vector(gNodes, dst_idx + 1));
+        gWeightedEdges += [src_idx / 2, "", dst_idx / 2, dist];
     }
     gWeightedEdges = llListSort(gWeightedEdges, 4, 1);
 }
@@ -390,33 +390,33 @@ list dijkstraFindPath(integer src_idx, integer dst_idx)
 {
     if (src_idx == dst_idx)
     {
-        return (list)src_idx;
+        return [src_idx];
     }
     integer src = src_idx / 2;
     integer dst = dst_idx / 2;
     list dist;
     list prev;
     list consumed;
-    integer V = (gNodes != []) / 2;
-    integer edges_len = gWeightedEdges != [];
+    integer V = llGetListLength(gNodes) / 2;
+    integer edges_len = llGetListLength(gWeightedEdges);
     integer i;
-    for (i = 0; i < V; ++i)
+    for (i = 0; i < V; i++)
     {
-        dist = dist + ((float)10000000);
-        prev = prev + ((integer)-1);
-        consumed = consumed + 0;
+        dist += [((float)10000000)];
+        prev += [-1];
+        consumed += [0];
     }
-    dist = llListReplaceList(dist, (list)((float)0), src, src);
+    dist = llListReplaceList(dist, [((float)0)], src, src);
     integer u;
     while (1)
     {
         {
             float min_dist = ((float)10000000);
             integer v;
-            for (v = 0; v < V; ++v)
+            for (v = 0; v < V; v++)
             {
                 float cur_dist = llList2Float(dist, v);
-                if (!(min_dist < cur_dist))
+                if (cur_dist <= min_dist)
                 {
                     if (!llList2Integer(consumed, v))
                     {
@@ -433,29 +433,29 @@ list dijkstraFindPath(integer src_idx, integer dst_idx)
         if (u == dst)
         {
             list path;
-            while (~u)
+            while (u != -1)
             {
-                path = u + u + path;
+                path = [u * 2] + path;
                 u = llList2Integer(prev, u);
             }
             return path;
         }
-        consumed = llListReplaceList(consumed, (list)1, u, u);
-        integer adj_start = llListFindList(gWeightedEdges, (list)u + "");
-        for (i = adj_start; i < edges_len; i = 4 + i)
+        consumed = llListReplaceList(consumed, [1], u, u);
+        integer adj_start = llListFindList(gWeightedEdges, [u, ""]);
+        for (i = adj_start; i < edges_len; i += 4)
         {
-            if (llList2Integer(gWeightedEdges, i) ^ u)
+            if (llList2Integer(gWeightedEdges, i + 0) != u)
                 jump next;
-            integer v = llList2Integer(gWeightedEdges, -~-~i);
+            integer v = llList2Integer(gWeightedEdges, i + 2);
             if (!llList2Integer(consumed, v))
             {
                 float u_dist = llList2Float(dist, u);
-                float edge_dist = llList2Float(gWeightedEdges, 3 + i);
+                float edge_dist = llList2Float(gWeightedEdges, i + 3);
                 float alt = u_dist + edge_dist;
                 if (alt < llList2Float(dist, v))
                 {
-                    dist = llListReplaceList(dist, (list)alt, v, v);
-                    prev = llListReplaceList(prev, (list)u, v, v);
+                    dist = llListReplaceList(dist, [alt], v, v);
+                    prev = llListReplaceList(prev, [u], v, v);
                 }
             }
         }
@@ -468,10 +468,10 @@ list pathToIDs(list path)
 {
     list path_new;
     integer i;
-    integer len = path != [];
+    integer len = llGetListLength(path);
     for (i = 0; i < len; ++i)
     {
-        path_new = path_new + llList2String(gNodes, llList2Integer(path, i));
+        path_new += [llList2String(gNodes, llList2Integer(path, i) + 0)];
     }
     path = [];
     return path_new;
@@ -481,10 +481,10 @@ list pathToVectors(list path)
 {
     list path_new;
     integer i;
-    integer len = path != [];
+    integer len = llGetListLength(path);
     for (i = 0; i < len; ++i)
     {
-        path_new = path_new + llList2Vector(gNodes, -~llList2Integer(path, i));
+        path_new += [llList2Vector(gNodes, llList2Integer(path, i) + 1)];
     }
     path = [];
     return path_new;
@@ -493,19 +493,19 @@ list pathToVectors(list path)
 integer findClosestAccessibleNode(vector pos, key caster_key)
 {
     integer i;
-    integer len = gNodes != [];
+    integer len = llGetListLength(gNodes);
     list points;
-    for (i = 0; i < len; i = -~-~i)
+    for (i = 0; i < len; i += 2)
     {
-        vector diff = llList2Vector(gNodes, -~i) - pos;
-        diff.z = diff.z * ((float)2);
-        points = points + ((integer)llVecDist(<((float)0), ((float)0), ((float)0)>, diff) * 65536 | i);
+        vector diff = llList2Vector(gNodes, i + 1) - pos;
+        diff.z *= ((float)2);
+        points += [(integer)llVecDist(<((float)0), ((float)0), ((float)0)>, diff) << 16 | i];
     }
     points = llListSort(points, 1, 1);
     if (caster_key == "00000000-0000-0000-0000-000000000000")
         return llList2Integer(points, 0) & 65535;
-    len = points != [];
-    for (i = 0; i < len & i < 5; ++i)
+    len = llGetListLength(points);
+    for (i = 0; i < len && i < 5; ++i)
     {
         integer point = llList2Integer(points, i);
         integer node_idx = point & 65535;
@@ -513,15 +513,22 @@ integer findClosestAccessibleNode(vector pos, key caster_key)
         {
             return node_idx;
         }
-        vector node_pos = llList2Vector(gNodes, -~node_idx);
-        list cast_data = llCastRay(pos + <((float)0), ((float)0), 0.5>, node_pos + <((float)0), ((float)0), 0.5>, (list)3 + 2 + 0 + 11 + 2 + 2);
+        vector node_pos = llList2Vector(gNodes, node_idx + 1);
+        list cast_data = llCastRay(pos + <0, 0, 0.5>, node_pos + <0, 0, 0.5>, 
+            [ 3
+            , 2
+            , 0
+            , 2 | 8 | 1
+            , 2
+            , 2
+            ]);
         integer j;
-        integer num_hits = llList2Integer(cast_data, ((integer)-1));
-        if (((integer)-1) < num_hits)
+        integer num_hits = llList2Integer(cast_data, -1);
+        if (num_hits >= 0)
         {
             for (j = 0; j < num_hits; ++j)
             {
-                if (!(llList2Key(cast_data, j + j) == caster_key))
+                if (llList2Key(cast_data, j * 2) != caster_key)
                 {
                     jump next;
                 }
@@ -537,7 +544,7 @@ integer nodeRefToIdx(string node_ref, key caster_key)
 {
     if ((vector)node_ref == <((float)0), ((float)0), ((float)0)>)
     {
-        return llListFindList(gNodes, (list)node_ref);
+        return llListFindList(gNodes, [node_ref]);
     }
     else
     {
@@ -549,86 +556,79 @@ default
 {
     link_message(integer sender_num, integer num, string str, key id)
     {
-        if (num ^ 800)
-            if (num ^ 801)
-                if (num ^ 802)
-                    if (num ^ 803)
-                        if (num ^ 900)
-                        {
-                            if (num == 1000 | num == 1001 | num == 1002)
-                            {
-                                list path;
-                                list params = llParseString2List(str, (list)":", []);
-                                integer src_idx = nodeRefToIdx(llList2String(params, 0), id);
-                                integer dst_idx = nodeRefToIdx(llList2String(params, 1), "00000000-0000-0000-0000-000000000000");
-                                vector src_pos = (vector)llList2String(params, 0);
-                                if (!(!~src_idx | !~dst_idx | gWeightedEdges == []))
-                                {
-                                    path = dijkstraFindPath(src_idx, dst_idx);
-                                    if (num ^ 1000)
-                                    {
-                                        path = pathToVectors(path);
-                                        if (!(src_pos == <((float)0), ((float)0), ((float)0)> | (path != []) < 2))
-                                        {
-                                            vector node1_pos = llList2Vector(path, 0);
-                                            vector node2_pos = llList2Vector(path, 1);
-                                            vector ideal_dir = llVecNorm(node2_pos - node1_pos);
-                                            vector src_dir = llVecNorm(node2_pos - src_pos);
-                                            float dir_diff = llRot2Angle(llRotBetween(ideal_dir, src_dir));
-                                            if (dir_diff < 0.25)
-                                            {
-                                                path = llDeleteSubList(path, 0, 0);
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        path = pathToIDs(path);
-                                    }
-                                }
-                                llMessageLinked(((integer)-4), 1003, llDumpList2String(path, ":"), id);
-                            }
-                        }
-                        else
-                        {
-                            integer i;
-                            integer len = gNodes != [];
-                            for (i = 0; i < len; i = -~-~i)
-                            {
-                                string node_id = llList2String(gNodes, i);
-                                vector node_pos = llList2Vector(gNodes, -~i);
-                                llMessageLinked(((integer)-4), 902, node_id, (key)((string)node_pos));
-                                if (!(i % 25))
-                                    llSleep(0.5);
-                            }
-                            len = gNodeRelations != [];
-                            for (i = 0; i < len; ++i)
-                            {
-                                integer rel = llList2Integer(gNodeRelations, i);
-                                llMessageLinked(((integer)-4), 903, llList2String(gNodes, rel >> 16), (key)llList2String(gNodes, rel & 65535));
-                                if (!(i % 25))
-                                    llSleep(0.5);
-                            }
-                            llMessageLinked(((integer)-4), 901, "", "00000000-0000-0000-0000-000000000000");
-                        }
-                    else
-                    {
-                        gNodeRelations = gNodeRelations + (llListFindList(gNodes, (list)str) * 65536 | llListFindList(gNodes, (list)((string)id)));
-                    }
-                else
-                {
-                    gNodes = gNodes + str + (vector)((string)id);
-                }
-            else
-            {
-                calculateEdgeWeights();
-                llOwnerSay("Graph state saved");
-            }
-        else
+        if (num == 800)
         {
             gNodes = [];
             gNodeRelations = [];
             gWeightedEdges = [];
+        }
+        else if (num == 801)
+        {
+            calculateEdgeWeights();
+            llOwnerSay("Graph state saved");
+        }
+        else if (num == 802)
+        {
+            gNodes += [str, (vector)((string)id)];
+        }
+        else if (num == 803)
+        {
+            gNodeRelations += llListFindList(gNodes, [str]) << 16 | llListFindList(gNodes, [(string)id]);
+        }
+        else if (num == 900)
+        {
+            integer i;
+            integer len = llGetListLength(gNodes);
+            for (i = 0; i < len; i += 2)
+            {
+                string node_id = llList2String(gNodes, i + 0);
+                vector node_pos = llList2Vector(gNodes, i + 1);
+                llMessageLinked(((integer)-4), 902, node_id, (key)((string)node_pos));
+                if (i % 25 == 0)
+                    llSleep(0.5);
+            }
+            len = llGetListLength(gNodeRelations);
+            for (i = 0; i < len; ++i)
+            {
+                integer rel = llList2Integer(gNodeRelations, i);
+                llMessageLinked(((integer)-4), 903, llList2String(gNodes, rel >> 16), (key)llList2String(gNodes, rel & 65535));
+                if (i % 25 == 0)
+                    llSleep(0.5);
+            }
+            llMessageLinked(((integer)-4), 901, "", "00000000-0000-0000-0000-000000000000");
+        }
+        else if (num == 1000 || num == 1001 || num == 1002)
+        {
+            list path;
+            list params = llParseString2List(str, [":"], []);
+            integer src_idx = nodeRefToIdx(llList2String(params, 0), id);
+            integer dst_idx = nodeRefToIdx(llList2String(params, 1), "00000000-0000-0000-0000-000000000000");
+            vector src_pos = (vector)llList2String(params, 0);
+            if (src_idx != -1 && dst_idx != -1 && llGetListLength(gWeightedEdges))
+            {
+                path = dijkstraFindPath(src_idx, dst_idx);
+                if (num == 1000)
+                {
+                    path = pathToIDs(path);
+                }
+                else
+                {
+                    path = pathToVectors(path);
+                    if (src_pos != <((float)0), ((float)0), ((float)0)> && llGetListLength(path) >= 2)
+                    {
+                        vector node1_pos = llList2Vector(path, 0);
+                        vector node2_pos = llList2Vector(path, 1);
+                        vector ideal_dir = llVecNorm(node2_pos - node1_pos);
+                        vector src_dir = llVecNorm(node2_pos - src_pos);
+                        float dir_diff = llRot2Angle(llRotBetween(ideal_dir, src_dir));
+                        if (dir_diff < 0.25)
+                        {
+                            path = llDeleteSubList(path, 0, 0);
+                        }
+                    }
+                }
+            }
+            llMessageLinked(((integer)-4), 1003, llDumpList2String(path, ":"), id);
         }
     }
 }

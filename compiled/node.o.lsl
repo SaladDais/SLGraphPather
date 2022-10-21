@@ -123,9 +123,9 @@ string gParentLogicalID;
 restoreLogicalID(integer create)
 {
     string desc = llGetObjectDesc();
-    if (~llSubStringIndex(desc, ":"))
+    if (llSubStringIndex(desc, ":") != -1)
     {
-        list parsed = llParseString2List(desc, (list)":", []);
+        list parsed = llParseString2List(desc, [":"], []);
         gOwnLogicalID = llList2String(parsed, 0);
         gParentLogicalID = llList2String(parsed, 1);
     }
@@ -144,7 +144,7 @@ string generateDescription()
 
 string strReplace(string subject, string search, string replace)
 {
-    return llDumpList2String(llParseStringKeepNulls(subject, (list)search, []), replace);
+    return llDumpList2String(llParseStringKeepNulls(subject, [search], []), replace);
 }
 
 string compressKey(key k)
@@ -156,14 +156,14 @@ string compressKey(key k)
     string B;
     string C;
     string D;
-    for (i = 0; i < 32; )
+    for (i = 0; i < 32; 0)
     {
         A = llGetSubString(s, i, i);
-        ++i;
+        i++;
         B = llGetSubString(s, i, i);
-        ++i;
+        i++;
         C = llGetSubString(s, i, i);
-        ++i;
+        i++;
         D = "b";
         if (A == "0")
         {
@@ -180,7 +180,7 @@ string compressKey(key k)
             A = "e";
             D = "a";
         }
-        ret = ret + ("%e" + A + "%" + D + B + "%b" + C);
+        ret += "%e" + A + "%" + D + B + "%b" + C;
     }
     return llUnescapeURL(ret);
 }
@@ -199,13 +199,13 @@ tellAlive(key id)
     {
         llRegionSayTo(id, ((integer)-21461420), msg);
     }
-    else if (gParentLogicalID == "")
+    else if (gParentLogicalID != "")
     {
-        llWhisper(((integer)-21461420), msg);
+        llRegionSay(((integer)-21461420), msg);
     }
     else
     {
-        llRegionSay(((integer)-21461420), msg);
+        llWhisper(((integer)-21461420), msg);
     }
 }
 
@@ -217,18 +217,18 @@ default
         restoreLogicalID(1);
         llListen(((integer)-21461419), "", "", "");
         tellAlive("00000000-0000-0000-0000-000000000000");
-        llSetText("", <((float)1), ((float)1), ((float)1)>, 0);
+        llSetText("", <1, 1, 1>, 0);
         gStartTime = llGetUnixTime();
     }
 
     on_rez(integer start_param)
     {
-        if (llAbs(gStartTime + -llGetUnixTime()) < 5)
+        if (llAbs(gStartTime - llGetUnixTime()) < 5)
             return;
         llSetObjectDesc("");
         gOwnLogicalID = "";
         gParentLogicalID = "";
-        llSetText("", <((float)1), ((float)1), ((float)1)>, 0);
+        llSetText("", <1, 1, 1>, 0);
         if (!llGetStartParameter())
         {
             restoreLogicalID(1);
@@ -243,22 +243,22 @@ default
 
     listen(integer channel, string name, key id, string msg)
     {
-        if (!(llGetOwnerKey(id) == llGetOwner()))
+        if (llGetOwnerKey(id) != llGetOwner())
             return;
-        list params = llParseStringKeepNulls(msg, (list)":", []);
+        list params = llParseStringKeepNulls(msg, [":"], []);
         string cmd = llList2String(params, 0);
         params = llDeleteSubList(params, 0, 0);
-        key parent = (key)((string)llGetObjectDetails(id, (list)18));
+        key parent = llList2Key(llGetObjectDetails(id, [18]), 0);
         if (cmd == "node_assign")
         {
             if (!llGetStartParameter())
                 return;
-            if (!(gOwnLogicalID == ""))
+            if (gOwnLogicalID != "")
                 return;
             gOwnLogicalID = llList2String(params, 0);
             gParentLogicalID = llList2String(params, 1);
             vector pos = (vector)llList2String(params, 2);
-            if (!(pos == <((float)0), ((float)0), ((float)0)>))
+            if (pos != <((float)0), ((float)0), ((float)0)>)
                 llSetRegionPos(pos);
             llSetObjectDesc(generateDescription());
         }
@@ -270,14 +270,14 @@ default
         }
         else if (cmd == "node_kill_all")
         {
-            if (gParentLogicalID == "" | gParentLogicalID == llList2String(params, 0))
+            if (gParentLogicalID == "" || gParentLogicalID == llList2String(params, 0))
             {
                 llDie();
             }
         }
         else if (cmd == "node_ping")
         {
-            if (!(gParentLogicalID == ""))
+            if (gParentLogicalID != "")
                 return;
             tellAlive(parent);
         }
@@ -287,7 +287,7 @@ default
         }
         else if (cmd == "node_color")
         {
-            llSetLinkPrimitiveParamsFast(((integer)-4), (list)18 + ((integer)-1) + (vector)llList2String(params, 0) + llList2Float(params, 1));
+            llSetLinkPrimitiveParamsFast(((integer)-4), [18, ((integer)-1), (vector)llList2String(params, 0), llList2Float(params, 1)]);
         }
     }
 }
