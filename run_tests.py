@@ -58,69 +58,69 @@ class MockedDataManagerScript(DataManagerScript, ScriptMockMixin):
     def __init__(self):
         super().__init__()
 
-    def add_node(self, node_id: str, node_pos: Vector):
+    async def add_node(self, node_id: str, node_pos: Vector):
         self.queue_event("link_message", (0, IPC_SAVE_NODE, node_id, typecast(typecast(node_pos, str), Key)))
-        self.execute()
+        await self.execute()
 
-    def add_relation(self, node_src: str, node_dst: str):
+    async def add_relation(self, node_src: str, node_dst: str):
         self.queue_event("link_message", (0, IPC_SAVE_RELATION, node_src, typecast(node_dst, Key)))
-        self.execute()
+        await self.execute()
 
-    def request_path(self, node_src: Union[str, Vector], node_dst: Union[str, Vector]) -> List[int]:
+    async def request_path(self, node_src: Union[str, Vector], node_dst: Union[str, Vector]) -> List[int]:
         if isinstance(node_src, Vector):
             node_src = typecast(node_src, str)
         if isinstance(node_dst, Vector):
             node_dst = typecast(node_dst, str)
-        src_idx = self.nodeRefToIdx(node_src, NULL_KEY)
-        dst_idx = self.nodeRefToIdx(node_dst, NULL_KEY)
-        return self.dijkstraFindPath(src_idx, dst_idx)
+        src_idx = await self.nodeRefToIdx(node_src, NULL_KEY)
+        dst_idx = await self.nodeRefToIdx(node_dst, NULL_KEY)
+        return await self.dijkstraFindPath(src_idx, dst_idx)
 
 
-class PathfindingTests(unittest.TestCase):
-    def setUp(self) -> None:
+class PathfindingTests(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self) -> None:
         self.data_manager = MockedDataManagerScript()
-        self.data_manager.execute()
+        await self.data_manager.execute()
 
-        self.data_manager.add_node("1", Vector((1.0, 2.0, 3.0)))
-        self.data_manager.add_node("2", Vector((1.0, 6.0, 3.0)))
-        self.data_manager.add_node("3", Vector((1.0, 8.0, 3.0)))
-        self.data_manager.add_node("-1", Vector((3.0, -1.0, 3.0)))
-        self.data_manager.add_node("island", Vector((9.0, 9.0, 9.0)))
+        await self.data_manager.add_node("1", Vector((1.0, 2.0, 3.0)))
+        await self.data_manager.add_node("2", Vector((1.0, 6.0, 3.0)))
+        await self.data_manager.add_node("3", Vector((1.0, 8.0, 3.0)))
+        await self.data_manager.add_node("-1", Vector((3.0, -1.0, 3.0)))
+        await self.data_manager.add_node("island", Vector((9.0, 9.0, 9.0)))
 
-        self.data_manager.add_relation("1", "2")
-        self.data_manager.add_relation("2", "1")
+        await self.data_manager.add_relation("1", "2")
+        await self.data_manager.add_relation("2", "1")
         # Unidirectional
-        self.data_manager.add_relation("2", "3")
+        await self.data_manager.add_relation("2", "3")
 
         # The only back to 1 from three is to go all the way back to -1
-        self.data_manager.add_relation("1", "-1")
-        self.data_manager.add_relation("-1", "1")
-        self.data_manager.add_relation("-1", "3")
-        self.data_manager.add_relation("3", "-1")
+        await self.data_manager.add_relation("1", "-1")
+        await self.data_manager.add_relation("-1", "1")
+        await self.data_manager.add_relation("-1", "3")
+        await self.data_manager.add_relation("3", "-1")
 
-        self.data_manager.calculateEdgeWeights()
+        await self.data_manager.calculateEdgeWeights()
 
-    def _get_path_ids(self, src: Union[Vector, str], dst: Union[Vector, str]):
-        return self.data_manager.pathToIDs(self.data_manager.request_path(src, dst))
+    async def _get_path_ids(self, src: Union[Vector, str], dst: Union[Vector, str]):
+        return await self.data_manager.pathToIDs(await self.data_manager.request_path(src, dst))
 
-    def test_simple_path(self):
+    async def test_simple_path(self):
         # Straight line
-        self.assertListEqual(["1", "2", "3"], self._get_path_ids("1", "3"))
+        self.assertListEqual(["1", "2", "3"], await self._get_path_ids("1", "3"))
 
-    def test_unidirectional_path(self):
+    async def test_unidirectional_path(self):
         # Have to take a less optimal path because 2->3 relation is unidirectional
-        self.assertListEqual(["3", "-1", "1"], self._get_path_ids("3", "1"))
+        self.assertListEqual(["3", "-1", "1"], await self._get_path_ids("3", "1"))
 
-    def test_island_path(self):
+    async def test_island_path(self):
         # No connection == no valid path
-        self.assertListEqual([], self._get_path_ids("3", "island"))
+        self.assertListEqual([], await self._get_path_ids("3", "island"))
 
-    def test_closest_node_path(self):
+    async def test_closest_node_path(self):
         # 1 and 3 are closest to src and dst coords, respectively.
-        self.assertListEqual(['1', '2', '3'], self._get_path_ids(Vector((1, 2, 3)), Vector((1, 8, 3))))
+        self.assertListEqual(['1', '2', '3'], await self._get_path_ids(Vector((1, 2, 3)), Vector((1, 8, 3))))
 
-    def test_path_as_vectors(self):
-        path_vecs = self.data_manager.pathToVectors(self.data_manager.request_path("1", "3"))
+    async def test_path_as_vectors(self):
+        path_vecs = await self.data_manager.pathToVectors(await self.data_manager.request_path("1", "3"))
         self.assertListEqual(
             [
                 Vector((1.0, 2.0, 3.0)),
